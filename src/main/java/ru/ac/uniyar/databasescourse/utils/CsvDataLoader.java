@@ -5,7 +5,7 @@ import de.siegmar.fastcsv.reader.CsvReader;
 import java.io.IOException;
 import java.nio.file.Path;
 
-public class SomeCsvDataLoader {
+public class CsvDataLoader {
         public static void load(Path path) throws IOException {
             try (CsvReader csvReader = CsvReader.builder().build(path)) {
                 // .skip(1) <=> skip the header

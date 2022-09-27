@@ -1,13 +1,13 @@
 package ru.ac.uniyar.databasescourse;
 
 
-import ru.ac.uniyar.databasescourse.utils.SomeCsvDataLoader;
+import ru.ac.uniyar.databasescourse.utils.CsvDataLoader;
 
 import java.io.IOException;
 import java.nio.file.Path;
 import java.sql.*;
 
-public class DatabaseExample {
+public class Main {
     private static final String URL = String.format("jdbc:mariadb://%s", System.getenv("MARIADB_HOST"));
     private static final String user = System.getenv("MARIADB_USER");
     private static final String password = System.getenv("MARIADB_PASSWORD");
@@ -75,8 +75,10 @@ public class DatabaseExample {
     }
 
     public static void main(String[] args) throws IOException {
-        SomeCsvDataLoader someCsvDataLoader = new SomeCsvDataLoader();
+        CsvDataLoader someCsvDataLoader = new CsvDataLoader();
         someCsvDataLoader.load(Path.of("solutions.csv"));
+
+
 //        createQuery("SHOW TABLES");
 //        insertSQL("('Иван', 'Петров', 762201, 'Александр Сергеевич Пушкин — солнце русской поэзии!', 3.3, 'Хорошо, но мало', 'F')");
 //        insertSQL("('Дмитрий', 'Степанов', 762101, 'Фёдор Михайлович Достоевский написал много книг.', 4.5, 'Мало, но хорошо.', 'T')");
@@ -85,12 +87,14 @@ public class DatabaseExample {
 //        insertSQL("('Сергей', 'Кириллов', 762203, 'Не умею читать', 2.2, null, 'F')");
 //        insertSQL("('Кирилл', 'Иванов', 762204, 'Толстой — грязное пятно на теле русской литературы', 3.6, 'Неправда.', null)");
 //        selectSQL("*", null);
-        checkHasPassIsNull();
+//        checkHasPassIsNull();
+
+
     }
 
-    private static void checkHasPassIsNull() {
-        selectSQL("name, answer", "has_pass is null");
-    }
+//    private static void checkHasPassIsNull() {
+//        selectSQL("name, answer", "has_pass is null");
+//    }
 
     private static Connection createConnection() throws SQLException {
         return DriverManager.getConnection(URL, user, password);
