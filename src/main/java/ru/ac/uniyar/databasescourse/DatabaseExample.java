@@ -1,6 +1,10 @@
 package ru.ac.uniyar.databasescourse;
 
 
+import ru.ac.uniyar.databasescourse.utils.SomeCsvDataLoader;
+
+import java.io.IOException;
+import java.nio.file.Path;
 import java.sql.*;
 
 public class DatabaseExample {
@@ -70,7 +74,9 @@ public class DatabaseExample {
                 "COLLATE utf8_general_ci;");
     }
 
-    public static void main(String[] args) {
+    public static void main(String[] args) throws IOException {
+        SomeCsvDataLoader someCsvDataLoader = new SomeCsvDataLoader();
+        someCsvDataLoader.load(Path.of("solutions.csv"));
 //        createQuery("SHOW TABLES");
 //        insertSQL("('Иван', 'Петров', 762201, 'Александр Сергеевич Пушкин — солнце русской поэзии!', 3.3, 'Хорошо, но мало', 'F')");
 //        insertSQL("('Дмитрий', 'Степанов', 762101, 'Фёдор Михайлович Достоевский написал много книг.', 4.5, 'Мало, но хорошо.', 'T')");
@@ -78,8 +84,12 @@ public class DatabaseExample {
 //        insertSQL("('Михаил', 'Сергеев', 762016, 'Александр Сергеевич Грибоедов — солнце русской поэзии!', 4.0, 'Хорошо, но мало', null)");
 //        insertSQL("('Сергей', 'Кириллов', 762203, 'Не умею читать', 2.2, null, 'F')");
 //        insertSQL("('Кирилл', 'Иванов', 762204, 'Толстой — грязное пятно на теле русской литературы', 3.6, 'Неправда.', null)");
-        selectSQL("*", null);
-        selectSQL("'name', 'answer'", "has_pass is null");
+//        selectSQL("*", null);
+        checkHasPassIsNull();
+    }
+
+    private static void checkHasPassIsNull() {
+        selectSQL("name, answer", "has_pass is null");
     }
 
     private static Connection createConnection() throws SQLException {
