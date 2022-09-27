@@ -7,7 +7,7 @@ import java.io.IOException;
 import java.nio.file.Path;
 import java.sql.*;
 
-public class Main {
+public class DatabaseExample {
     private static final String URL = String.format("jdbc:mariadb://%s", System.getenv("MARIADB_HOST"));
     private static final String user = System.getenv("MARIADB_USER");
     private static final String password = System.getenv("MARIADB_PASSWORD");
@@ -76,7 +76,7 @@ public class Main {
 
     public static void main(String[] args) throws IOException {
         CsvDataLoader someCsvDataLoader = new CsvDataLoader();
-        someCsvDataLoader.load(Path.of("solutions.csv"));
+        someCsvDataLoader.load(Path.of("data.csv"));
 
 
 //        createQuery("SHOW TABLES");
