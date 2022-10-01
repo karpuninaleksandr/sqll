@@ -2,10 +2,13 @@ package ru.ac.uniyar.databasescourse;
 
 
 import ru.ac.uniyar.databasescourse.utils.CsvDataLoader;
+import ru.ac.uniyar.databasescourse.utils.CsvParserString;
 
 import java.io.IOException;
 import java.nio.file.Path;
 import java.sql.*;
+import java.util.ArrayList;
+import java.util.List;
 
 public class DatabaseExample {
     private static final String URL = String.format("jdbc:mariadb://%s", System.getenv("MARIADB_HOST"));
@@ -34,7 +37,8 @@ public class DatabaseExample {
     }
 
     public static void selectSQL(String query, String additionalQuery) {
-        ResultSet rs = createQuery((additionalQuery == null) ? ("SELECT " + query + " FROM students") : ("SELECT " + query + " FROM students WHERE " + additionalQuery));
+        ResultSet rs = createQuery((additionalQuery == null) ? ("SELECT " + query + " FROM students")
+                : ("SELECT " + query + " FROM students WHERE " + additionalQuery));
         try {
             while (rs.next()) {
                 for (int i = 1; i < 8; ++i) {
@@ -52,7 +56,8 @@ public class DatabaseExample {
     }
 
     public static void insertSQL(String values) {
-        ResultSet rs = createQuery("INSERT INTO students (name, surname, card, answer, score, review, has_pass)\n VALUES " + values);
+        ResultSet rs = createQuery("INSERT INTO students (name, surname, card, answer," +
+                " score, review, has_pass)\n VALUES " + values);
         try {
             while (rs.next()) System.out.printf("Statement %s\n", rs.getString(1));
         } catch (SQLException ex) {
@@ -74,9 +79,16 @@ public class DatabaseExample {
                 "COLLATE utf8_general_ci;");
     }
 
+    public static void dropTableSQL() {
+        createQuery("DROP TABLE students");
+    }
+
     public static void main(String[] args) throws IOException {
-        CsvDataLoader someCsvDataLoader = new CsvDataLoader();
-        someCsvDataLoader.load(Path.of("data.csv"));
+//        CsvDataLoader someCsvDataLoader = new CsvDataLoader();
+//        createTableSQL();
+        List<CsvParserString> list = CsvDataLoader.parseCsvFile(Path.of("data.csv"));
+        System.out.println(list.get(0).getStudentName());
+//        someCsvDataLoader.load(Path.of("data.csv"));
 
 
 //        createQuery("SHOW TABLES");
@@ -86,15 +98,15 @@ public class DatabaseExample {
 //        insertSQL("('Михаил', 'Сергеев', 762016, 'Александр Сергеевич Грибоедов — солнце русской поэзии!', 4.0, 'Хорошо, но мало', null)");
 //        insertSQL("('Сергей', 'Кириллов', 762203, 'Не умею читать', 2.2, null, 'F')");
 //        insertSQL("('Кирилл', 'Иванов', 762204, 'Толстой — грязное пятно на теле русской литературы', 3.6, 'Неправда.', null)");
+//        dropTableSQL();
 //        selectSQL("*", null);
 //        checkHasPassIsNull();
 
-
     }
 
-//    private static void checkHasPassIsNull() {
-//        selectSQL("name, answer", "has_pass is null");
-//    }
+    private static void checkHasPassIsNull() {
+        selectSQL("name, answer", "has_pass is null");
+    }
 
     private static Connection createConnection() throws SQLException {
         return DriverManager.getConnection(URL, user, password);

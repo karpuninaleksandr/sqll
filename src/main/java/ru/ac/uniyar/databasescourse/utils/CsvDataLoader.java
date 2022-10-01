@@ -1,27 +1,31 @@
 package ru.ac.uniyar.databasescourse.utils;
 
-import de.siegmar.fastcsv.reader.CsvReader;
-import ru.ac.uniyar.databasescourse.Essences.CsvParserString;
 
-import java.io.FileNotFoundException;
-import java.io.FileReader;
+import de.siegmar.fastcsv.reader.CsvReader;
+
 import java.io.IOException;
 import java.nio.file.Path;
 import java.util.ArrayList;
 
 public class CsvDataLoader {
-    public static void load(Path path) throws IOException {
+    public static ArrayList<CsvParserString> parseCsvFile(Path path) {
+        ArrayList<CsvParserString> data = new ArrayList<>();
         try (CsvReader csvReader = CsvReader.builder().build(path)) {
-            // .skip(1) <=> skip the header
-            csvReader.stream().skip(1).forEach(csvRow -> {System.out.println(csvRow.getField(1));});
+            csvReader.stream().skip(1).forEach(csvRow -> {
+                data.add(new CsvParserString(
+                        Integer.parseInt(csvRow.getField(0)),
+                        csvRow.getField(1),
+                        csvRow.getField(2),
+                        Integer.parseInt(csvRow.getField(3)),
+                        Integer.parseInt(csvRow.getField(4)),
+                        csvRow.getField(5),
+                        csvRow.getField(6),
+                        Double.parseDouble(csvRow.getField(7)),
+                        csvRow.getField(8)));
+            });
+        } catch (IOException e) {
+            throw new RuntimeException(e);
         }
-    }
-
-    public static ArrayList<CsvParserString> parseCsvFile(String path) throws FileNotFoundException {
-        ArrayList data = new ArrayList<CsvParserString>();
-        try (CsvReader csvReader = new CsvReader(new FileReader(path.toString()))) {
-            // .skip(1) <=> skip the header
-            csvReader.stream().skip(1).forEach(csvRow -> {System.out.println(csvRow.getField(1));});
-        }
+        return data;
     }
 }

@@ -1,4 +1,4 @@
-package ru.ac.uniyar.databasescourse.Essences;
+package ru.ac.uniyar.databasescourse.utils;
 
 public class CsvParserString {
     private int studentId;
@@ -8,7 +8,7 @@ public class CsvParserString {
     private int reviewerId;
     private String reviewerSurname;
     private String reviewerDepartment;
-    private int score;
+    private double score;
     private String hasPassed;
 
     public CsvParserString(
@@ -19,7 +19,7 @@ public class CsvParserString {
         int reviewerId,
         String reviewerSurname,
         String reviewerDepartment,
-        int score,
+        double score,
         String hasPassed
     ) {
         this.studentId = studentId;
@@ -33,4 +33,7 @@ public class CsvParserString {
         this.hasPassed = hasPassed;
     }
 
+    public String getStudentName() {
+        return studentName;
+    }
 }
