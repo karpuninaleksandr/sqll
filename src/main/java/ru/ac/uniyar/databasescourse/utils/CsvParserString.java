@@ -33,7 +33,33 @@ public class CsvParserString {
         this.hasPassed = hasPassed;
     }
 
-    public String getStudentName() {
-        return studentName;
+    public int getStudentId() {
+        return this.studentId;
     }
+    public String getStudentName() {
+        return this.studentName;
+    }
+    public String getStudentSurname() {
+        return this.studentSurname;
+    }
+    public int getSolutionId() {
+        return this.solutionId;
+    }
+    public int getReviewerId() {
+        return this.reviewerId;
+    }
+    public String getReviewerSurname() {
+        return this.reviewerSurname;
+    }
+    public String getReviewerDepartment() {
+        return this.reviewerDepartment;
+    }
+    public double getScore() {
+        return this.score;
+    }
+    public String getHasPassed() {
+        return this.hasPassed;
+    }
+
+
 }

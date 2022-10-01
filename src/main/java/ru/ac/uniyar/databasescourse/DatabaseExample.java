@@ -36,7 +36,7 @@ public class DatabaseExample {
         return null;
     }
 
-    public static void selectSQL(String query, String additionalQuery) {
+    public static void selectSQL(String name, String query, String additionalQuery) {
         ResultSet rs = createQuery((additionalQuery == null) ? ("SELECT " + query + " FROM students")
                 : ("SELECT " + query + " FROM students WHERE " + additionalQuery));
         try {
@@ -55,9 +55,9 @@ public class DatabaseExample {
         }
     }
 
-    public static void insertSQL(String values) {
-        ResultSet rs = createQuery("INSERT INTO students (name, surname, card, answer," +
-                " score, review, has_pass)\n VALUES " + values);
+    public static void insertSQL(String name, String columns, String values) {
+        ResultSet rs = createQuery("INSERT INTO " + name + " (" + columns +
+                " )\n VALUES " + values);
         try {
             while (rs.next()) System.out.printf("Statement %s\n", rs.getString(1));
         } catch (SQLException ex) {
@@ -65,47 +65,63 @@ public class DatabaseExample {
         }
     }
 
-    public static void createTableSQL() {
+    public static void createTablesSQL() {
         createQuery("CREATE TABLE IF NOT EXISTS students(\n" +
-                "name CHAR(127) NOT NULL,\n" +
-                "surname CHAR(127) NOT NULL,\n" +
-                "card INT PRIMARY KEY,\n" +
-                "answer CHAR(127) NOT NULL,\n" +
-                "score DOUBLE NOT NULL,\n" +
-                "review CHAR(127),\n" +
-                "has_pass CHAR(1)\n" +
+                "studentID INT PRIMARY KEY,\n" +
+                "studentName CHAR(127) NOT NULL,\n" +
+                "studentSurname CHAR(127) NOT NULL\n" +
                 ")\n" +
                 "CHARACTER SET utf8\n" +
                 "COLLATE utf8_general_ci;");
+        createQuery("CREATE TABLE IF NOT EXISTS solutions(\n" +
+                "solutionID INT PRIMARY KEY,\n" +
+                "studentID INT NOT NULL,\n" +
+                "reviewerID INT NOT NULL,\n" +
+                "score DOUBLE NOT NULL,\n" +
+                "hasPassed CHAR(3)\n" +
+                ")\n" +
+                "CHARACTER SET utf8\n" +
+                "COLLATE utf8_general_ci;");
+        createQuery("CREATE TABLE IF NOT EXISTS reviewers(\n" +
+                "reviewerID INT PRIMARY KEY,\n" +
+                "reviewerSurname CHAR(127) NOT NULL,\n" +
+                "reviewerDepartment CHAR(127) NOT NULL\n" +
+                ")\n" +
+                "CHARACTER SET utf8\n" +
+                "COLLATE utf8_general_ci;");
+//        CsvDataLoader.parseCsvFile(Path.of("data.csv")).forEach(csvParserString -> {
+//            insertSQL("students", "studentId, studentName, studentSurname",
+//                    csvParserString.getStudentId() + " " + csvParserString.getStudentName() + " "
+//                            + csvParserString.getStudentSurname());
+//            insertSQL("solutions", "solutionID, studentId, reviewerID, score, hasPassed",
+//                    csvParserString.getSolutionId() + " " + csvParserString.getStudentId() + " "
+//                            + csvParserString.getReviewerId() + " " + csvParserString.getScore() + " "
+//                            + csvParserString.getHasPassed());
+//            insertSQL("reviewers", "reviewerID, reviewerSurname, reviewerDepartment",
+//                    csvParserString.getReviewerId() + " " + csvParserString.getReviewerSurname() + " "
+//                            + csvParserString.getReviewerDepartment());
+//        });
     }
 
-    public static void dropTableSQL() {
+    public static void dropTablesSQL() {
         createQuery("DROP TABLE students");
+        createQuery("DROP TABLE solutions");
+        createQuery("DROP TABLE reviewers");
     }
 
     public static void main(String[] args) throws IOException {
-//        CsvDataLoader someCsvDataLoader = new CsvDataLoader();
-//        createTableSQL();
-        List<CsvParserString> list = CsvDataLoader.parseCsvFile(Path.of("data.csv"));
-        System.out.println(list.get(0).getStudentName());
-//        someCsvDataLoader.load(Path.of("data.csv"));
-
-
-//        createQuery("SHOW TABLES");
-//        insertSQL("('Иван', 'Петров', 762201, 'Александр Сергеевич Пушкин — солнце русской поэзии!', 3.3, 'Хорошо, но мало', 'F')");
-//        insertSQL("('Дмитрий', 'Степанов', 762101, 'Фёдор Михайлович Достоевский написал много книг.', 4.5, 'Мало, но хорошо.', 'T')");
-//        insertSQL("('Степан', 'Михайлов', 762202, 'Статья в Wikipedia про Валерия Брюсова', 5.0, null, 'T')");
-//        insertSQL("('Михаил', 'Сергеев', 762016, 'Александр Сергеевич Грибоедов — солнце русской поэзии!', 4.0, 'Хорошо, но мало', null)");
-//        insertSQL("('Сергей', 'Кириллов', 762203, 'Не умею читать', 2.2, null, 'F')");
-//        insertSQL("('Кирилл', 'Иванов', 762204, 'Толстой — грязное пятно на теле русской литературы', 3.6, 'Неправда.', null)");
-//        dropTableSQL();
-//        selectSQL("*", null);
-//        checkHasPassIsNull();
-
+//        dropTablesSQL();
+        createTablesSQL();
+        ResultSet rs = createQuery("SHOW TABlES");
+        try {
+            while (rs.next()) System.out.printf("Statement %s\n", rs.getString(1));
+        } catch (SQLException ex) {
+            System.out.printf("Statement execution error: %s\n", ex);
+        }
     }
 
     private static void checkHasPassIsNull() {
-        selectSQL("name, answer", "has_pass is null");
+        //selectSQL("name, answer", "has_pass is null");
     }
 
     private static Connection createConnection() throws SQLException {
