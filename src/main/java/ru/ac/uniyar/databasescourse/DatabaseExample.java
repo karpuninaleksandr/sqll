@@ -1,5 +1,8 @@
 package ru.ac.uniyar.databasescourse;
 
+import ru.ac.uniyar.databasescourse.essences.Reviewer;
+import ru.ac.uniyar.databasescourse.essences.Solution;
+import ru.ac.uniyar.databasescourse.essences.Student;
 import ru.ac.uniyar.databasescourse.utils.CsvDataLoader;
 
 import java.io.IOException;
@@ -10,10 +13,10 @@ public class DatabaseExample {
     private static final String URL = String.format("jdbc:mariadb://%s", System.getenv("MARIADB_HOST"));
     private static final String user = System.getenv("MARIADB_USER");
     private static final String password = System.getenv("MARIADB_PASSWORD");
+    private static Connection connection;
 
     public static ResultSet createQuery(String query) {
-        try (Connection conn = createConnection()) {
-            try (Statement smt = conn.createStatement()) {
+            try (Statement smt = connection.createStatement()) {
                 try {
                     smt.executeQuery("USE AleksandrKarpuninDB");
                     return smt.executeQuery(query);
@@ -25,17 +28,13 @@ public class DatabaseExample {
             catch (SQLException ex) {
                 System.out.printf("Can't create statement: %s\n", ex);
             }
-        }
-        catch (SQLException ex) {
-            System.out.printf("Can't create connection: %s\n", ex);
-        }
         return null;
     }
 
     public static void selectSQL(String name, String query, String additionalQuery) {
         ResultSet rs = createQuery((additionalQuery == null) ? ("SELECT " + query + " FROM " + name)
                 : ("SELECT " + query + " FROM " + name + " WHERE " + additionalQuery));
-        int amountOfColumns = (name.equals("solutions")) ? 4 : 3;
+        int amountOfColumns = (name.equals("solutions")) ? 5 : 3;
         try {
             while (rs.next()) {
                 for (int i = 1; i <= amountOfColumns; ++i) {
@@ -52,38 +51,62 @@ public class DatabaseExample {
         }
     }
 
-    public static void insertSQL(String name, String columns, String values) {
-        ResultSet rs = createQuery("INSERT IGNORE INTO " + name + " (" + columns +
-                ")\n VALUES (" + values + ")");
-        try {
-            while (rs.next()) System.out.printf("Statement %s\n", rs.getString(1));
-        } catch (SQLException ex) {
-            System.out.printf("Statement execution error: %s\n", ex);
-        }
+    public static void addStudent(Student student) throws SQLException {
+        String query = "INSERT IGNORE INTO students (studentID, studentName, studentSurname) VALUES (?, ?, ?)";
+        PreparedStatement preparedStatement = connection.prepareStatement(query);
+        preparedStatement.setInt(1, student.studentID);
+        preparedStatement.setString(2, student.studentName);
+        preparedStatement.setString(3, student.studentSurname);
+        preparedStatement.executeQuery();
+        preparedStatement.close();
+    }
+
+    public static void addReviewer(Reviewer reviewer) throws SQLException {
+        String query = "INSERT IGNORE INTO reviewers (reviewerID, reviewerSurname, reviewerDepartment) VALUES (?, ?, ?)";
+        PreparedStatement preparedStatement = connection.prepareStatement(query);
+        preparedStatement.setInt(1, reviewer.reviewerID);
+        preparedStatement.setString(2, reviewer.reviewerSurname);
+        preparedStatement.setString(3, reviewer.reviewerDepartment);
+        preparedStatement.executeQuery();
+        preparedStatement.close();
+    }
+
+    public static void addSolution(Solution solution) throws SQLException {
+        String query = "INSERT IGNORE INTO solutions (solutionID, studentID, reviewerID, score, hasPassed) VALUES (?, ?, ?, ?, ?)";
+        PreparedStatement preparedStatement = connection.prepareStatement(query);
+        preparedStatement.setInt(1, solution.solutionID);
+        preparedStatement.setInt(2, solution.studentID);
+        preparedStatement.setInt(3, solution.reviewerID);
+        preparedStatement.setDouble(4, solution.score);
+        preparedStatement.setString(5, solution.hasPassed);
+        preparedStatement.executeQuery();
+        preparedStatement.close();
     }
 
     public static void createTablesSQL() {
         System.out.println("Creating new tables...");
         createQuery("CREATE TABLE IF NOT EXISTS students(\n" +
-                "studentID INT PRIMARY KEY,\n" +
+                "studentID INT NOT NULL PRIMARY KEY,\n" +
                 "studentName CHAR(127) NOT NULL,\n" +
                 "studentSurname CHAR(127) NOT NULL\n" +
                 ")\n" +
                 "CHARACTER SET utf8\n" +
                 "COLLATE utf8_general_ci;");
-        createQuery("CREATE TABLE IF NOT EXISTS solutions(\n" +
-                "solutionID INT PRIMARY KEY,\n" +
-                "studentID INT NOT NULL,\n" +
-                "reviewerID INT NOT NULL,\n" +
-                "score DOUBLE NOT NULL,\n" +
-                "hasPassed CHAR(3)\n" +
+        createQuery("CREATE TABLE IF NOT EXISTS reviewers(\n" +
+                "reviewerID INT NOT NULL PRIMARY KEY,\n" +
+                "reviewerSurname CHAR(127) NOT NULL,\n" +
+                "reviewerDepartment CHAR(127) NOT NULL\n" +
                 ")\n" +
                 "CHARACTER SET utf8\n" +
                 "COLLATE utf8_general_ci;");
-        createQuery("CREATE TABLE IF NOT EXISTS reviewers(\n" +
-                "reviewerID INT PRIMARY KEY,\n" +
-                "reviewerSurname CHAR(127) NOT NULL,\n" +
-                "reviewerDepartment CHAR(127) NOT NULL\n" +
+        createQuery("CREATE TABLE IF NOT EXISTS solutions(\n" +
+                "solutionID INT NOT NULL PRIMARY KEY,\n" +
+                "studentID INT NOT NULL,\n" +
+                "reviewerID INT NOT NULL,\n" +
+                "score DOUBLE NOT NULL,\n" +
+                "hasPassed CHAR(3),\n" +
+                "FOREIGN KEY (studentID) REFERENCES students(studentID) ON DELETE CASCADE\n," +
+                "FOREIGN KEY (reviewerID) REFERENCES reviewers(reviewerID) ON DELETE CASCADE\n" +
                 ")\n" +
                 "CHARACTER SET utf8\n" +
                 "COLLATE utf8_general_ci;");
@@ -92,46 +115,46 @@ public class DatabaseExample {
 
     public static void dropTablesSQL() {
         System.out.println("Dropping all tables...");
-        createQuery("DROP TABLE students");
-        createQuery("DROP TABLE solutions");
-        createQuery("DROP TABLE reviewers");
+        createQuery("DROP TABLE IF EXISTS solutions, students, reviewers");
         System.out.println("Dropped all tables");
     }
 
     public static void fillTablesSQL() {
         System.out.println("Filling tables from csv file...");
         CsvDataLoader.parseCsvFile(Path.of("data.csv")).forEach(csvParserString -> {
-            insertSQL("students", "studentId, studentName, studentSurname",
-                    csvParserString.getStudentId() + ", \"" + csvParserString.getStudentName() + "\", \""
-                            + csvParserString.getStudentSurname() + "\"");
-            insertSQL("solutions", "solutionID, studentId, reviewerID, score, hasPassed",
-                    csvParserString.getSolutionId() + ", " + csvParserString.getStudentId() + ", "
-                            + csvParserString.getReviewerId() + ", " + csvParserString.getScore() + ", \""
-                            + csvParserString.getHasPassed() + "\"");
-            insertSQL("reviewers", "reviewerID, reviewerSurname, reviewerDepartment",
-                    csvParserString.getReviewerId() + ", \"" + csvParserString.getReviewerSurname() + "\", \""
-                            + csvParserString.getReviewerDepartment() + "\"");
+            try {
+                addStudent(new Student(
+                        csvParserString.getStudentId(),
+                        csvParserString.getStudentName(),
+                        csvParserString.getStudentSurname())
+                );
+                addReviewer(new Reviewer(
+                        csvParserString.getReviewerId(),
+                        csvParserString.getReviewerSurname(),
+                        csvParserString.getReviewerDepartment())
+                );
+                addSolution(new Solution(
+                        csvParserString.getSolutionId(),
+                        csvParserString.getStudentId(),
+                        csvParserString.getReviewerId(),
+                        csvParserString.getScore(),
+                        csvParserString.getHasPassed())
+                );
+            } catch (SQLException ex) {
+                System.out.printf("Statement execution error: %s\n", ex);
+            }
         });
         System.out.println("Filled all tables");
     }
 
-    public static void main(String[] args) throws IOException {
+    public static void main(String[] args) throws SQLException {
+        connection = createConnection();
         dropTablesSQL();
         createTablesSQL();
         fillTablesSQL();
         selectSQL("students", "*", null);
         selectSQL("solutions", "*", null);
         selectSQL("reviewers", "*", null);
-//        ResultSet rs = createQuery("SHOW TABlES");
-//        try {
-//            while (rs.next()) System.out.printf("Statement %s\n", rs.getString(1));
-//        } catch (SQLException ex) {
-//            System.out.printf("Statement execution error: %s\n", ex);
-//        }
-    }
-
-    private static void checkHasPassIsNull() {
-        //selectSQL("name, answer", "has_pass is null");
     }
 
     private static Connection createConnection() throws SQLException {
