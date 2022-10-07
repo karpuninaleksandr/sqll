@@ -5,7 +5,6 @@ import ru.ac.uniyar.databasescourse.essences.Solution;
 import ru.ac.uniyar.databasescourse.essences.Student;
 import ru.ac.uniyar.databasescourse.utils.CsvDataLoader;
 
-import java.io.IOException;
 import java.nio.file.Path;
 import java.sql.*;
 
@@ -31,10 +30,13 @@ public class DatabaseExample {
         return null;
     }
 
-    public static void selectSQL(String name, String query, String additionalQuery) {
-        ResultSet rs = createQuery((additionalQuery == null) ? ("SELECT " + query + " FROM " + name)
-                : ("SELECT " + query + " FROM " + name + " WHERE " + additionalQuery));
-        int amountOfColumns = (name.equals("solutions")) ? 5 : 3;
+    public static void selectSQL(String tableName) throws SQLException {
+        String querys = "SELECT * FROM ?";
+        PreparedStatement preparedStatement =  connection.prepareStatement(querys);
+        preparedStatement.setString(1, tableName);
+        ResultSet rs = preparedStatement.executeQuery();
+        preparedStatement.close();
+        int amountOfColumns = (tableName.equals("solutions")) ? 5 : 3;
         try {
             while (rs.next()) {
                 for (int i = 1; i <= amountOfColumns; ++i) {
@@ -152,9 +154,9 @@ public class DatabaseExample {
         dropTablesSQL();
         createTablesSQL();
         fillTablesSQL();
-        selectSQL("students", "*", null);
-        selectSQL("solutions", "*", null);
-        selectSQL("reviewers", "*", null);
+        selectSQL("students");
+        selectSQL("solutions");
+        selectSQL("reviewers");
     }
 
     private static Connection createConnection() throws SQLException {
