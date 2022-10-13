@@ -31,11 +31,12 @@ public class DatabaseExample {
     }
 
     public static void selectSQL(String tableName) throws SQLException {
-        String querys = "SELECT * FROM ?";
-        PreparedStatement preparedStatement =  connection.prepareStatement(querys);
-        preparedStatement.setString(1, tableName);
-        ResultSet rs = preparedStatement.executeQuery();
-        preparedStatement.close();
+        String query = "SELECT * FROM " + tableName;
+//        PreparedStatement preparedStatement =  connection.prepareStatement(query);
+//        preparedStatement.setString(1, tableName);
+//        ResultSet rs = preparedStatement.executeQuery();
+//        preparedStatement.close();
+        ResultSet rs = createQuery(query);
         int amountOfColumns = (tableName.equals("solutions")) ? 5 : 3;
         try {
             while (rs.next()) {
