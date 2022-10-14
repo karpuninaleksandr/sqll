@@ -1,15 +1,22 @@
 package ru.ac.uniyar.databasescourse.utils;
 
+import ru.ac.uniyar.databasescourse.essences.Reviewer;
+import ru.ac.uniyar.databasescourse.essences.Solution;
+import ru.ac.uniyar.databasescourse.essences.Student;
+
+import java.sql.Connection;
+import java.sql.SQLException;
+
 public class CsvParserString {
-    private int studentId;
-    private String studentName;
-    private String studentSurname;
-    private int solutionId;
-    private int reviewerId;
-    private String reviewerSurname;
-    private String reviewerDepartment;
-    private double score;
-    private String hasPassed;
+    public int studentId;
+    public String studentName;
+    public String studentSurname;
+    public int solutionId;
+    public int reviewerId;
+    public String reviewerSurname;
+    public String reviewerDepartment;
+    public double score;
+    public String hasPassed;
 
     public CsvParserString(
         int studentId,
@@ -33,33 +40,17 @@ public class CsvParserString {
         this.hasPassed = hasPassed;
     }
 
-    public int getStudentId() {
-        return this.studentId;
-    }
-    public String getStudentName() {
-        return this.studentName;
-    }
-    public String getStudentSurname() {
-        return this.studentSurname;
-    }
-    public int getSolutionId() {
-        return this.solutionId;
-    }
-    public int getReviewerId() {
-        return this.reviewerId;
-    }
-    public String getReviewerSurname() {
-        return this.reviewerSurname;
-    }
-    public String getReviewerDepartment() {
-        return this.reviewerDepartment;
-    }
-    public double getScore() {
-        return this.score;
-    }
-    public String getHasPassed() {
-        return this.hasPassed;
-    }
+    public void fill(Connection connection) {
+        try {
+            new Student(this.studentId, this.studentName, this.studentSurname).addToTable(connection)
+                    .executeQuery().close();
+            new Reviewer(this.reviewerId, this.reviewerSurname, this.reviewerDepartment).addToTable(connection)
+                    .executeQuery().close();
+            new Solution(this.solutionId, this.studentId, this.reviewerId, this.score, this.hasPassed).addToTable(connection)
+                    .executeQuery().close();
+        } catch (SQLException ex) {
+            System.out.printf("Statement execution error: %s\n", ex);
+        }
 
-
+    }
 }
