@@ -152,12 +152,116 @@ public class DatabaseExample {
 
     public static void main(String[] args) throws SQLException {
         connection = createConnection();
-        dropTablesSQL();
-        createTablesSQL();
-        fillTablesSQL();
-        selectSQL("students");
-        selectSQL("solutions");
-        selectSQL("reviewers");
+//        dropTablesSQL();
+//        createTablesSQL();
+//        fillTablesSQL();
+
+//        selectSQL("students");
+//        selectSQL("solutions");
+//        selectSQL("reviewers");
+
+        getMaxMinScores();
+        getMinMaxScoresFromReviewers();
+        getScoreStatistics();
+        getCheckStatistics();
+    }
+
+    private static void getMaxMinScores() {
+        System.out.println("\n=== All students with either max or min score ===");
+        String query =  "WITH minMax AS (SELECT max(solutions.score) AS max, min(solutions.score) AS min FROM solutions) SELECT solutions.score, " +
+                "students.studentName, students.studentSurname FROM solutions " +
+                "INNER JOIN students ON (solutions.studentID = students.studentID)" +
+                "INNER JOIN minMax ON (max = solutions.score OR min = solutions.score);";
+        ResultSet rs = createQuery(query);
+        try {
+            while (rs.next()) {
+                for (int i = 1; i <= 3; ++i) {
+                    try {
+                        System.out.printf("%s ", rs.getString(i));
+                    } catch (SQLException ex) {
+                        break;
+                    }
+                }
+                System.out.println();
+            }
+        } catch (SQLException ex) {
+            System.out.printf("Statement execution error: %s\n", ex);
+        }
+        System.out.println("===============");
+    }
+
+    private static void getMinMaxScoresFromReviewers() {
+        System.out.println("\n=== All reviewers with either max or min given score ===");
+        String query =  "WITH minMax AS (SELECT max(solutions.score) AS max, min(solutions.score) AS min FROM solutions) " +
+                "SELECT DISTINCT solutions.score, reviewers.reviewerSurname FROM solutions " +
+                "INNER JOIN reviewers ON (solutions.reviewerID = reviewers.reviewerID)" +
+                "INNER JOIN minMax ON (max = solutions.score OR min = solutions.score);";
+        ResultSet rs = createQuery(query);
+        try {
+            while (rs.next()) {
+                for (int i = 1; i <= 2; ++i) {
+                    try {
+                        System.out.printf("%s ", rs.getString(i));
+                    } catch (SQLException ex) {
+                        break;
+                    }
+                }
+                System.out.println();
+            }
+        } catch (SQLException ex) {
+            System.out.printf("Statement execution error: %s\n", ex);
+        }
+        System.out.println("===============");
+    }
+
+    private static void getScoreStatistics() {
+        System.out.println("=== Score statistics ===");
+        String query = "(SELECT reviewers.reviewerSurname, students.studentName, students.studentSurname, AVG(solutions.score) " +
+            "FROM solutions INNER JOIN students ON (students.studentID = solutions.studentID) " +
+            "INNER JOIN reviewers ON (reviewers.reviewerID = solutions.reviewerID)" +
+            "GROUP BY students.studentName, students.studentSurname, reviewers.reviewerSurname)" +
+            "ORDER BY reviewers.reviewerSurname";
+        ResultSet rs = createQuery(query);
+        try {
+            while (rs.next()) {
+                for (int i = 1; i <= 4; ++i) {
+                    try {
+                        System.out.printf("%s ", rs.getString(i));
+                    } catch (SQLException ex) {
+                        break;
+                    }
+                }
+                System.out.println();
+            }
+        } catch (SQLException ex) {
+            System.out.printf("Statement execution error: %s\n", ex);
+        }
+        System.out.println("===============");
+    }
+
+    private static void getCheckStatistics() {
+        System.out.println("=== Checking statistics ===");
+        String query = "(SELECT reviewers.reviewerSurname, students.studentName, students.studentSurname, COUNT(solutions.score) " +
+                "FROM solutions INNER JOIN students ON (students.studentID = solutions.studentID) " +
+                "INNER JOIN reviewers ON (reviewers.reviewerID = solutions.reviewerID)" +
+                "GROUP BY students.studentName, students.studentSurname, reviewers.reviewerSurname)" +
+                "ORDER BY reviewers.reviewerSurname";
+        ResultSet rs = createQuery(query);
+        try {
+            while (rs.next()) {
+                for (int i = 1; i <= 4; ++i) {
+                    try {
+                        System.out.printf("%s ", rs.getString(i));
+                    } catch (SQLException ex) {
+                        break;
+                    }
+                }
+                System.out.println();
+            }
+        } catch (SQLException ex) {
+            System.out.printf("Statement execution error: %s\n", ex);
+        }
+        System.out.println("===============");
     }
 
     private static Connection createConnection() throws SQLException {
